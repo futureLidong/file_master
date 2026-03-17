@@ -1,4 +1,4 @@
-"""PDF information extraction MCP plugin."""
+"""PDF information extraction MCP plugin - V3 with context-aware merging."""
 
 import json
 from typing import Any, Optional
@@ -6,30 +6,32 @@ from typing import Any, Optional
 from mcp.types import Tool, TextContent, ErrorContent
 
 from ..config import Config
-from ..services import PDFReader, Extractor, validate_pdf_file
+from ..services import PDFReader, validate_pdf_file
+from ..services.extractor_v3 import ExtractorV3
 
 
 class PDFExtractPlugin:
     """
-    MCP plugin for PDF information extraction.
+    MCP plugin for PDF information extraction with V3 extractor.
     
     Features:
     - Large file support (chunked processing)
     - Natural language queries
+    - Context-aware conflict resolution
+    - Full context preservation
     - Optional citation extraction
-    - Progress tracking
     """
     
     def __init__(self, config: Config):
         self.config = config
-        self.extractor = Extractor(config)
+        self.extractor = ExtractorV3(config)
     
     def get_tools(self) -> list[Tool]:
         """Return list of available tools."""
         return [
             Tool(
                 name="pdf_extract",
-                description="从 PDF 文件中提取关键信息。支持自然语言查询和关键词匹配，可处理大文件（分页处理）。",
+                description="从 PDF 文件中提取关键信息。支持自然语言查询和关键词匹配，可处理大文件（分页处理）。V3 版本支持上下文冲突解决。",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -50,6 +52,11 @@ class PDFExtractPlugin:
                         "include_citations": {
                             "type": "boolean",
                             "description": "是否包含原文引用",
+                            "default": False
+                        },
+                        "include_candidates": {
+                            "type": "boolean",
+                            "description": "是否包含所有候选值及其上下文（用于调试）",
                             "default": False
                         },
                         "max_pages": {
@@ -122,10 +129,11 @@ class PDFExtractPlugin:
         self,
         args: dict[str, Any],
     ) -> list[TextContent | ErrorContent]:
-        """Handle pdf_extract tool."""
+        """Handle pdf_extract tool with V3 extractor."""
         file_path = args.get("file_path")
         query = args.get("query")
         include_citations = args.get("include_citations", False)
+        include_candidates = args.get("include_candidates", False)
         max_pages = args.get("max_pages", 0)
         chunk_size = args.get("chunk_size", 10)
         
@@ -154,7 +162,7 @@ class PDFExtractPlugin:
             
             # Check if chunked processing is needed
             if total_pages > self.config.max_pages_per_request:
-                # Chunked processing for large files
+                # Chunked processing for large files with V3 context-aware merging
                 chunks = list(reader.iter_page_chunks(
                     chunk_size=chunk_size,
                     overlap=self.config.chunk_overlap_pages,
@@ -173,10 +181,12 @@ class PDFExtractPlugin:
                     f"--- 第{p.page_number}页 ---\n{p.text}"
                     for p in pages
                 )
-                result = self.extractor.extract(
+                # For single chunk, use extract_with_context
+                result = self.extractor.extract_with_context(
                     text,
                     query,
-                    include_citations,
+                    page_numbers=[p.page_number for p in pages],
+                    include_reasoning=True,
                 )
         
         # Build response
@@ -191,6 +201,13 @@ class PDFExtractPlugin:
         
         if include_citations and result.citations:
             response_data["citations"] = result.citations
+        
+        if include_candidates:
+            # Include all candidates with full context for debugging
+            response_data["candidates"] = {
+                field: [c.to_dict() for c in candidates]
+                for field, candidates in result.candidates.items()
+            }
         
         if result.error:
             response_data["error"] = result.error

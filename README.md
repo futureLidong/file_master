@@ -13,9 +13,15 @@ MCP (Model Context Protocol) plugins for file processing and document intelligen
 
 | Tool | Description | Status |
 |------|-------------|--------|
-| `pdf_extract` | 从 PDF 提取关键信息（支持自然语言查询） | ✅ Ready |
+| `pdf_extract` | 从 PDF 提取关键信息（V3 上下文冲突解决） | ✅ Ready |
 | `pdf_info` | 获取 PDF 基本信息（页数、大小、元数据） | ✅ Ready |
 | `pdf_validate` | 验证 PDF 文件是否有效 | ✅ Ready |
+
+**V3 新特性：**
+- ✅ 完整上下文保留（原文片段 + AI 理由）
+- ✅ 智能冲突解决（基于上下文的 AI 判断）
+- ✅ 所有候选值追踪（用于调试和审计）
+- ✅ 可解释性增强（每个提取都有依据）
 
 ## 🛠️ Tech Stack
 
@@ -70,7 +76,7 @@ python -m file_master.server
 }
 ```
 
-#### Extract Information
+#### Extract Information (V3)
 ```json
 {
   "name": "pdf_extract",
@@ -78,6 +84,7 @@ python -m file_master.server
     "file_path": "/path/to/contract.pdf",
     "query": "合同金额，签署日期，甲方乙方名称",
     "include_citations": true,
+    "include_candidates": true,  // V3 新参数：包含所有候选值及上下文
     "max_pages": 50
   }
 }
