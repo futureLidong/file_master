@@ -5,42 +5,134 @@ MCP (Model Context Protocol) plugins for file processing and document intelligen
 ## 🎯 Goals
 
 - **PDF Reading** - Extract text, metadata, and structure from PDF documents
-- **Image Recognition** - OCR and image content analysis
-- **Key Information Extraction** - Automatically extract important data from documents
-- **File Format Support** - Handle multiple file formats (PDF, DOCX, images, etc.)
+- **Key Information Extraction** - AI-powered extraction based on natural language queries
+- **Large File Support** - Chunked processing for files up to 100MB
+- **Citation Tracking** - Optional source citation for extracted information
 
-## 🚀 Planned MCP Plugins
+## 🚀 Available MCP Tools
 
-| Plugin | Description | Status |
-|--------|-------------|--------|
-| `pdf-reader` | Read and parse PDF files | 📋 Planned |
-| `image-ocr` | OCR for images | 📋 Planned |
-| `doc-parser` | Parse DOCX, TXT, MD files | 📋 Planned |
-| `info-extractor` | Extract key information using AI | 📋 Planned |
-| `file-search` | Semantic search across files | 📋 Planned |
+| Tool | Description | Status |
+|------|-------------|--------|
+| `pdf_extract` | 从 PDF 提取关键信息（支持自然语言查询） | ✅ Ready |
+| `pdf_info` | 获取 PDF 基本信息（页数、大小、元数据） | ✅ Ready |
+| `pdf_validate` | 验证 PDF 文件是否有效 | ✅ Ready |
 
 ## 🛠️ Tech Stack
 
-- **Runtime**: Node.js / TypeScript
-- **MCP SDK**: @modelcontextprotocol/sdk
-- **PDF**: pdf-parse, pdfjs-dist
-- **OCR**: Tesseract.js or cloud OCR APIs
-- **AI**: For intelligent information extraction
+- **Runtime**: Python 3.10+
+- **MCP SDK**: mcp
+- **PDF**: pdfplumber (布局感知文本提取)
+- **AI**: 百炼/Qwen API (qwen-plus)
 
 ## 📦 Installation
 
+### 1. Create virtual environment
+
 ```bash
-npm install
+python3 -m venv .venv
+source .venv/bin/activate  # Linux/macOS
+# or: .venv\Scripts\activate  # Windows
+```
+
+### 2. Install dependencies
+
+```bash
+pip install -e .
+```
+
+### 3. Set API key
+
+```bash
+export DASHSCOPE_API_KEY=your_api_key_here
 ```
 
 ## 🔧 Usage
 
+### Start MCP Server
+
 ```bash
-# Start MCP server
-npm run start
+# As command
+file-master
+
+# Or as module
+python -m file_master.server
+```
+
+### Example Tool Calls
+
+#### Get PDF Info
+```json
+{
+  "name": "pdf_info",
+  "arguments": {
+    "file_path": "/path/to/document.pdf"
+  }
+}
+```
+
+#### Extract Information
+```json
+{
+  "name": "pdf_extract",
+  "arguments": {
+    "file_path": "/path/to/contract.pdf",
+    "query": "合同金额，签署日期，甲方乙方名称",
+    "include_citations": true,
+    "max_pages": 50
+  }
+}
+```
+
+#### Validate PDF
+```json
+{
+  "name": "pdf_validate",
+  "arguments": {
+    "file_path": "/path/to/file.pdf"
+  }
+}
+```
+
+## ⚙️ Configuration
+
+| Environment Variable | Description | Default |
+|---------------------|-------------|---------|
+| `DASHSCOPE_API_KEY` | 百炼 API 密钥 | (required) |
+| `DASHSCOPE_MODEL` | 使用的模型 | `qwen-plus` |
+| `PDF_MAX_FILE_SIZE_MB` | 最大文件大小 (MB) | `100` |
+| `PDF_MAX_PAGES_PER_REQUEST` | 每批处理页数 | `20` |
+| `PDF_DEFAULT_MAX_PAGES` | 默认最大页数 | `50` |
+
+## 📁 Project Structure
+
+```
+file_master/
+├── src/file_master/
+│   ├── __init__.py
+│   ├── server.py           # MCP Server 入口
+│   ├── config.py           # 配置管理
+│   ├── plugins/
+│   │   └── pdf_extract.py  # PDF 抽取插件
+│   └── services/
+│       ├── pdf_reader.py   # PDF 读取服务
+│       └── extractor.py    # AI 抽取服务
+├── tests/
+├── pyproject.toml
+└── requirements.txt
+```
+
+## 🧪 Development
+
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
 
 # Run tests
-npm test
+pytest
+
+# Format code
+black src/
+ruff check src/
 ```
 
 ## 📝 License
