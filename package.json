@@ -1,0 +1,39 @@
+{
+  "name": "file_master",
+  "version": "0.1.0",
+  "description": "MCP plugins for file processing: PDF reading, image recognition, key information extraction",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "pdf",
+    "ocr",
+    "document",
+    "file-processing"
+  ],
+  "author": "futureLidong",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "pdf-parse": "^1.1.1",
+    "tesseract.js": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  }
+}
